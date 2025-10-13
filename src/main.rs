@@ -1,3 +1,3 @@
 fn main() {
-    println!("Hello, world!");
+    dbg!(ftc_toolbox::tools::adb::adb_version());
 }
