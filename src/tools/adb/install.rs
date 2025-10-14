@@ -19,28 +19,31 @@ pub static BINPATH: LazyLock<PathBuf> = LazyLock::new(|| BINDIR.join("adb"));
 
 pub use super::check_install::installed_version as check;
 
-pub fn force() -> Result<(), InstallError> {
+pub async fn force() -> Result<(), InstallError> {
     tracing::info!("Installing ADB to {}", BINDIR.display());
 
-    let client = reqwest::blocking::Client::new();
-    let response = client.execute(client.get(URL).build()?)?;
+    let client = reqwest::Client::new();
+    let response = client.execute(client.get(URL).build()?).await?;
 
     tracing::info!("Downloaded ADB zip");
 
-    let mut archive = zip::ZipArchive::new(Cursor::new(response.bytes()?))?;
+    let mut archive = zip::ZipArchive::new(Cursor::new(response.bytes().await?))?;
     archive.extract_unwrapped_root_dir(&*BINDIR, |path| path.starts_with("platform-tools"))?;
+
+    tracing::info!("Extracted ADB zip");
+    tracing::info!("ADB installed successfully");
 
     Ok(())
 }
 
-pub fn if_necessary() -> Result<AdbInstall, InstallError> {
-    if let Ok(ver) = check() {
+pub async fn if_necessary() -> Result<AdbInstall, InstallError> {
+    if let Ok(ver) = check().await {
         tracing::info!("Found existing adb installation");
         return Ok(ver);
     }
 
-    force()?;
-    Ok(check().expect("adb installation botched"))
+    force().await?;
+    Ok(check().await.expect("adb installation botched"))
 }
 
 #[derive(Debug, thiserror::Error, from_variants::FromVariants)]

@@ -9,10 +9,10 @@ impl std::fmt::Display for AdbVersion {
     }
 }
 
-pub fn installed_version() -> Result<AdbInstall, AdbError> {
+pub async fn installed_version() -> Result<AdbInstall, AdbError> {
     let stdout = super::command()
         .arg("--version")
-        .output()
+        .output().await
         .map_err(|_| AdbError::NotInstalled)?
         .stdout;
     let adb_version = String::from_utf8(stdout).unwrap();
@@ -51,7 +51,7 @@ pub fn installed_version() -> Result<AdbInstall, AdbError> {
 
     tracing::debug!("adb path: {}", path.display());
 
-    Ok(AdbInstall { version, server_version, path, is_local })
+    Ok(AdbInstall { version, server_version, path, is_local: is_installed_locally() })
 }
 
 pub fn is_installed_locally() -> bool {

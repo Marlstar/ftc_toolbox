@@ -1,6 +1,7 @@
 use tracing_subscriber::fmt::format::Format;
 
-fn main() {
+#[tokio::main]
+async fn main() {
     tracing_subscriber::fmt()
         .with_max_level(match std::env::var("RUST_LOG").unwrap_or(String::from("INFO")).as_str() {
             "ERROR" => tracing::Level::ERROR,
@@ -16,7 +17,7 @@ fn main() {
             .without_time()
         ).init();
 
-    if let Err(e) = ftc_toolbox::tools::adb::install::if_necessary() {
+    if let Err(e) = ftc_toolbox::tools::adb::install::if_necessary().await {
         tracing::error!("failed to install adb ({e:?})");
         return;
     }
