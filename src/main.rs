@@ -1,4 +1,5 @@
 use tracing_subscriber::fmt::format::Format;
+use ftc_toolbox::tools::adb;
 
 #[tokio::main]
 async fn main() {
@@ -17,8 +18,13 @@ async fn main() {
             .without_time()
         ).init();
 
-    if let Err(e) = ftc_toolbox::tools::adb::install::if_necessary().await {
-        tracing::error!("failed to install adb ({e:?})");
+    if let Err(e) = adb::install::if_necessary().await {
+        tracing::error!("failed to install adb ({e})");
+        return;
+    }
+
+    if let Err(e) = adb::connect().await {
+        tracing::error!("failed to connect ({e})");
         return;
     }
 
